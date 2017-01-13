@@ -1,0 +1,30 @@
+{
+  "name": "futai-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "bin": {
+    "futai": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alessandromuresan/futai-agent.git"
+  },
+  "author": "Alessandro Muresan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alessandromuresan/futai-agent/issues"
+  },
+  "homepage": "https://github.com/alessandromuresan/futai-agent#readme",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "commander": "^2.9.0",
+    "fluent-ffmpeg": "^2.1.0",
+    "youtube-api": "^2.0.6",
+    "youtube-dl": "^1.11.1"
+  }
+}
