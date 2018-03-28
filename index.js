@@ -10,14 +10,44 @@ const exec = require('child_process').exec;
 let program = require('commander');
 
 program.version('0.0.1')
-    .option('-p, --playlist <playlist>', 'Youtube playlist id')
-    .option('-o, --output <output>', 'Output directory path')
-    .parse(process.argv);
+    .option('-p, --playlist <playlist>', 'Youtube playlist id to download')
+    .option('-u, --url <url>', 'The URL for the Youtube playlist (this has priority over the --playlist parameter)')
+    .option('-o, --output <output>', 'The directory in which to download the Youtube playlist to')
+    .option('-w, --winampPath <winampPath>', 'Optional path to winamp.exe (defaults to "C:\\Program Files (x86)\\Winamp\\winamp.exe")');
+
+program.on('--help', function(){
+    console.log('');
+    console.log('  Examples:');
+    console.log('');
+    console.log('    $ futai --playlist "PLSgyieXjxY_edCma2rZlwugFgvhldDU8-" --output "C:\\Users\\Mufi\\Desktop\\MuhMusic"');
+    console.log('');
+});
+
+program.parse(process.argv);
+
+if (!program.output) {
+    console.error('The --output parameter is mandatory');
+    return;
+}
+
+if (!program.playlist && !program.url) {
+    console.error('Please provide either the --playlist or the --url parameters');
+    return;
+}
 
 const playlistId = program.playlist;
 const playlistDir = program.output;
 
-const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+let winampPath = program.winampPath || "C:\\Program Files (x86)\\Winamp\\winamp.exe";
+let playlistUrl = program.url || `https://www.youtube.com/playlist?list=${playlistId}`;
+
+if (winampPath[0] !== '"') {
+    winampPath = '"' + winampPath
+}
+
+if (winampPath[winampPath.length - 1] !== '"') {
+    winampPath = winampPath + '"'
+}
 
 if (!fs.existsSync(playlistDir)){
     fs.mkdirSync(playlistDir);
@@ -67,6 +97,7 @@ function downloadPlaylist(url) {
     var video = youtubedl(url, ['-f mp4']);
 
     video.on('error', (err) => {
+        console.log('Error while downloading Youtube playlist');
         console.error(err);
     });
 
@@ -120,11 +151,23 @@ function downloadPlaylist(url) {
             
             console.log(`Adding ${videoTitle} in Winamp`);
 
-            exec(`winamp /ADD "${outputFile}"`, (err, stdout, stderr) => {
+            exec(`${winampPath} /ADD "${outputFile}"`, (err, stdout, stderr) => {
 
-                markVideoAsDownloaded(videoId, videoTitle);
+                let errorOutput = stderr.toString().trim();
+                let standardOutput = stdout.toString().trim();
 
-                console.log(`Added ${videoTitle} in Winamp`);
+                if (errorOutput) {
+                    console.log(`Error while adding video ${videoTitle} in Winamp`);
+                    console.error(errorOutput);
+                } else {
+                    markVideoAsDownloaded(videoId, videoTitle);
+                    console.log(`Successfully added ${videoTitle} in Winamp`);
+                    if (standardOutput) {
+                        console.log('Winamp STDOUT:')
+                        console.log(standardOutput);
+                    }
+                }
+
                 console.log();
             });
         } else {
